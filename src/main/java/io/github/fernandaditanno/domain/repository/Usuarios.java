@@ -2,10 +2,16 @@ package io.github.fernandaditanno.domain.repository;
 
 import io.github.fernandaditanno.domain.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface Usuarios extends JpaRepository<Usuario, Long> {
+
+    Optional<Usuario> findAllById(Integer id);
 
 //    @Autowired
 //    private EntityManager entityManager;
