@@ -4,12 +4,13 @@ import io.github.fernandaditanno.domain.entity.Usuario;
 import io.github.fernandaditanno.domain.repository.Usuarios;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("api/usuarios")
 public class UsuarioController {
 
@@ -23,52 +24,58 @@ public class UsuarioController {
             value = "/hello/{nome}",
             method = RequestMethod.GET
     )
-    @ResponseBody
     public String hello(@PathVariable ("nome") String nomeUsuario){
         return String.format("Hello %s!", nomeUsuario);
     }
 
     @GetMapping("/obterPorId/{id}")
-    @ResponseBody
-    public ResponseEntity<Usuario> obterUsuarioPorId(@PathVariable Integer id){
+    public Usuario obterUsuarioPorId(@PathVariable Integer id){
         Optional<Usuario> objeto = usuarios.findAllById(id);
         if(objeto.isPresent()){
             ResponseEntity<Usuario> responseEntity = new ResponseEntity<>(objeto.get(), HttpStatus.OK);
-            return ResponseEntity.ok(objeto.get());
+            return objeto.get();
         }else {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Não encontrado");
         }
     }
 
     @PostMapping()
-    @ResponseBody
-    public ResponseEntity<Usuario> salvarUsuario(@RequestBody Usuario usuario){
-        Usuario objeto = usuarios.save(usuario);
-        return ResponseEntity.ok(objeto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Usuario salvarUsuario(@RequestBody Usuario usuario){
+        return usuarios.save(usuario);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseBody
-    public ResponseEntity deleteUsuario(@PathVariable Integer id){
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUsuario(@PathVariable Integer id){
         Optional<Usuario> objeto = usuarios.findAllById(id);
         if (objeto.isPresent()){
             usuarios.delete(objeto.get());
-            return ResponseEntity.noContent().build();
         }else {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Não encontrado");
         }
     }
 
     @PutMapping()
-    @ResponseBody
-    public ResponseEntity<Usuario> alterarUsuario(@RequestBody Usuario usuario){
+    @ResponseStatus(HttpStatus.OK)
+    public Usuario alterarUsuario(@RequestBody Usuario usuario){
         Optional<Usuario> objeto = usuarios.findAllById(usuario.getId());
 
         if (objeto.isPresent()){
             Usuario edicao = usuarios.save(usuario);
-            return ResponseEntity.ok(edicao);
+            return edicao;
         }else {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Não encontrado");
+        }
+    }
+
+    @GetMapping()
+    public List<Usuario> obterTodos(){
+        List<Usuario> lista = usuarios.findAll();
+        if (lista.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Não possui usuarios");
+        }else {
+            return lista;
         }
     }
 }
